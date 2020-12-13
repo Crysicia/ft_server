@@ -7,8 +7,8 @@ ARG database=wordpress
 RUN apt-get update \
 	&& apt-get install -y nginx \
 	&& apt-get install -y mariadb-server \
-	&& apt-get install -y php-fpm \
-	&& apt-get install -y php-mysql
+	&& apt-get install -y php7.3-fpm \
+	&& apt-get install -y php7.3-mysql
 
 RUN service mysql start \
 	&& mysql -e "CREATE USER IF NOT EXISTS '$user'@'localhost' IDENTIFIED BY '$password';" \
