@@ -6,15 +6,21 @@ ARG database=wordpress
 
 RUN apt-get update \
 	&& apt-get install -y nginx \
-	&& apt-get install -y mariadb-server \
-	&& apt-get install -y php7.3-fpm \
-	&& apt-get install -y php7.3-mysql
+						  mariadb-server \
+						  php7.3-fpm \
+						  php7.3-mysql \
+						  wget \
+	&& wget https://github.com/FiloSottile/mkcert/releases/download/v1.4.3/mkcert-v1.4.3-linux-amd64 -O mkcert
 
 RUN service mysql start \
 	&& mysql -e "CREATE USER IF NOT EXISTS '$user'@'localhost' IDENTIFIED BY '$password';" \
 	&& mysql -e "CREATE DATABASE IF NOT EXISTS $database;" \
 	&& mysql -e "GRANT ALL PRIVILEGES ON $database.* TO '$user'@'localhost' WITH GRANT OPTION;" \
 	&& mysql -e "FLUSH PRIVILEGES;"
+
+RUN chmod 755 mkcert \
+	&& ./mkcert -install \
+	&& ./mkcert -cert-file /etc/ssl/certs/localhost-selfsigned.pem -key-file /etc/ssl/certs/localhost-selfsigned.key localhost
 
 COPY srcs/localhost .
 
@@ -25,6 +31,8 @@ RUN mkdir /var/www/localhost \
 COPY srcs/info.php /var/www/localhost/
 
 EXPOSE 80 443
+
+RUN nginx -t
 
 CMD service nginx start \
 	&& service mysql start \

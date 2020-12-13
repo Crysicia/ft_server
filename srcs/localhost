@@ -2,6 +2,11 @@ server {
     listen 80;
     listen [::]:80;
 
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    ssl_certificate /etc/ssl/certs/localhost-selfsigned.pem;
+    ssl_certificate_key /etc/ssl/certs/localhost-selfsigned.key;
+
     root /var/www/localhost;
     index index.php index.html index.htm;
 
