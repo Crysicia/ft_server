@@ -3,6 +3,7 @@ FROM debian:buster
 ARG user=user42
 ARG password=user42
 ARG database=wordpress
+ARG autoindex=on
 
 RUN apt-get update \
 	&& apt-get install -y nginx \
@@ -38,12 +39,12 @@ RUN mkdir /var/www/localhost \
 	&& ln -s /etc/nginx/sites-available/localhost /etc/nginx/sites-enabled/
 
 RUN service mysql start \
-	&& tar xvzf wordpress.tar.gz -C /var/www/localhost/ \
+	&& tar xvzf wordpress.tar.gz -C /var/www/localhost/ --strip-components 1 \
 	&& rm wordpress.tar.gz \
 	&& chmod +x wp-cli.phar \
 	&& mv wp-cli.phar /usr/local/bin/wp \
-	&& wp config create --path=/var/www/localhost/wordpress --dbname=$database --dbuser=$user --dbpass=$password --allow-root \
-	&& wp core install --path=/var/www/localhost/wordpress --url=localhost/wordpress --title="lpassera's ft_server" --admin_user=admin --admin_password=admin --admin_email=admin@localhost.com --allow-root
+	&& wp config create --path=/var/www/localhost --dbname=$database --dbuser=$user --dbpass=$password --allow-root \
+	&& wp core install --path=/var/www/localhost --url=localhost --title="lpassera's ft_server" --admin_user=admin --admin_password=admin --admin_email=admin@localhost.com --allow-root
 
 RUN mkdir /var/www/localhost/phpmyadmin \
 	&& tar xvzf phpmyadmin.tar.gz -C /var/www/localhost/phpmyadmin --strip-components 1 \
@@ -51,9 +52,9 @@ RUN mkdir /var/www/localhost/phpmyadmin \
 	&& sed -ri "s/cfg\['blowfish_secret'\] = ''/cfg['blowfish_secret'] = '`openssl rand -hex 32`'/" /var/www/localhost/phpmyadmin/config.inc.php \
 	&& chown -R www-data:www-data /var/www/localhost/
 
-EXPOSE 80 443
+RUN ./autoindex.sh $autoindex
 
-RUN nginx -t
+EXPOSE 80 443
 
 ENTRYPOINT service nginx start \
 		   && service mysql start \
